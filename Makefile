@@ -27,12 +27,8 @@ migrate-create:
 		echo "Missing the seq param. Example: make migrate-create seq=init"; \
 		exit 1; \
 	fi; \
-
-	MSYS_NO_PATHCONV=1 docker compose run --rm todoapp-postgres-migrate \
-		create \
-		-ext sql \
-		-dir /migrations \
-		-seq "$(seq)"
+	docker compose run --rm --user "$$(id -u):$$(id -g)" todoapp-postgres-migrate \
+		create -ext sql -dir /migrations -seq "$(seq)"
 
 migrate-up:
 	@$(MAKE) migrate-action action=up
