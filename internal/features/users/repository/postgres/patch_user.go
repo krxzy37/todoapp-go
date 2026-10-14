@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/krxzy37/todoapp-go/internal/core/domain"
 	core_errors "github.com/krxzy37/todoapp-go/internal/core/errors"
+	core_postgres_pool "github.com/krxzy37/todoapp-go/internal/core/repository/postgres/conn"
 )
 
 func (r *UsersRepository) PatchUser(
@@ -50,7 +50,7 @@ func (r *UsersRepository) PatchUser(
 	)
 
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, core_postgres_pool.ErrNoRows) {
 			return domain.User{}, fmt.Errorf(
 				"user with id='%d' concurrently accessed: %w",
 				id,
