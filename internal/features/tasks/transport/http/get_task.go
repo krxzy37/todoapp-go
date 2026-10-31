@@ -36,4 +36,6 @@ func (h *TasksHTTPHandler) GetTask(rw http.ResponseWriter, r *http.Request) {
 
 	response := GetTaskResponse(taskDTOFromDomain(taskDomain))
 
+	responseHandler.JSONResponse(response, http.StatusOK)
+
 }
