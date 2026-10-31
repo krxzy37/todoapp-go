@@ -46,8 +46,22 @@ env-port-forward:
 env-port-close:
 	@docker compose down port-forwarder
 
+
+logs-cleanup:
+	@read -p "Clear all log files? risk of logs loss  [y/N]: " ans; \
+	if [ "$$ans" = "y" ]; then \
+		rm -rf out/logs && \
+		echo "env files deleted"; \
+	else \
+		echo "deletion cancelled"; \
+	fi
+
 .PHONY: todoapp-run
 todoapp-run: export POSTGRES_HOST := localhost
 todoapp-run: export LOGGER_FOLDER := $(CURDIR)/out/logs
 todoapp-run:
 	go run ./cmd/todoapp
+
+
+
+
