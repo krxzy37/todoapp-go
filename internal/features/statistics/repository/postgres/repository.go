@@ -1,13 +1,15 @@
 package stats_postgres_repository
 
+import core_postgres_pool "github.com/krxzy37/todoapp-go/internal/core/repository/postgres/conn"
 
 type StatsRepository struct {
+	pool core_postgres_pool.Pool
+}
 
-	GetTasks(
-		ctx context.Context,
-		userID *int,
-		from *time.Time,
-		to *time.Time,
-	) ([]domain.Task, error) 
-
+func NewStatsRepository(
+	pool core_postgres_pool.Pool,
+) *StatsRepository {
+	return &StatsRepository{
+		pool: pool,
+	}
 }
