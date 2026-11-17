@@ -12,12 +12,12 @@ import (
 	core_http_types "github.com/krxzy37/todoapp-go/internal/core/transport/http/types"
 )
 
-type PathUserRequest struct {
-	FullName    core_http_types.Nullable[string] `json:"full_name"`
-	PhoneNumber core_http_types.Nullable[string] `json:"phone_number"`
+type PatchUserRequest struct {
+	FullName    core_http_types.Nullable[string] `json:"full_name" swaggertype:"string" example:"Max Maximov"`
+	PhoneNumber core_http_types.Nullable[string] `json:"phone_number" swaggertype:"string" example:"+380356429464"`
 }
 
-func (r *PathUserRequest) Validate() error {
+func (r *PatchUserRequest) Validate() error {
 	if r.FullName.Set {
 		if r.FullName.Value == nil {
 			return fmt.Errorf("FullName cant be NULL")
@@ -50,6 +50,25 @@ func (r *PathUserRequest) Validate() error {
 
 type PatchUserResponse UserDtoResponse
 
+// PatchUser godoc
+// @Summary patch user
+// @Description change existing user info in system
+// @Description ### Logic fields update (three-state logic):
+// @Description 1. **The field was not entered by the user**: ignore, the value in the database does not change
+// @Description 2. **The value is explicitly passed**: `"phone_number": "+380604356393` -  changing phone number
+// @Description 3. **passed null**: clears a field in the database
+// @Description Restrictions: `full_name` cant be null
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path int true "user id"
+// @Param request body PatchUserRequest true "PatchUser request body"
+// @Success 200 {object} PatchUserResponse "Success patch user"
+// @Failure 400 {object} core_http_response.ErrorResponse "Bad Request"
+// @Failure 404 {object} core_http_response.ErrorResponse "User Not Found"
+// @Failure 409 {object} core_http_response.ErrorResponse "Conflict"
+// @Failure 500 {object} core_http_response.ErrorResponse "Internal Server Error"
+// @Router /users/{id} [patch]
 func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
@@ -63,7 +82,7 @@ func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 		)
 	}
 
-	var request PathUserRequest
+	var request PatchUserRequest
 	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
 		responseHandler.ErrorResponse(
 
@@ -99,6 +118,6 @@ func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 
 }
 
-func userPatchFromRequest(request PathUserRequest) domain.UserPatch {
+func userPatchFromRequest(request PatchUserRequest) domain.UserPatch {
 	return domain.NewUserPatch(request.FullName.ToDomain(), request.PhoneNumber.ToDomain())
 }
