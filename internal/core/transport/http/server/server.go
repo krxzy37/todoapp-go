@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/krxzy37/todoapp-go/docs"
 	core_logger "github.com/krxzy37/todoapp-go/internal/core/logger"
 	core_http_middleware "github.com/krxzy37/todoapp-go/internal/core/transport/http/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 )
 
@@ -85,4 +87,27 @@ func (s *HTTPServer) Run(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (s *HTTPServer) RegisterRoutes(routes ...Route) {
+	for _, route := range routes {
+		pattern := fmt.Sprintf("%s %s", route.Method, route.Path)
+
+		s.mux.Handle(pattern, route.WithMiddleware())
+	}
+}
+
+func (s *HTTPServer) RegisterSwagger() {
+	s.mux.Handle("/swagger/",
+		httpSwagger.Handler(httpSwagger.URL("/swagger/doc.json")))
+
+	s.mux.HandleFunc(
+		"/swagger/doc.json",
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(docs.SwaggerInfo.ReadDoc()))
+		},
+	)
+
 }

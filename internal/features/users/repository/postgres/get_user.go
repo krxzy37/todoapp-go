@@ -19,7 +19,7 @@ func (r *UsersRepository) GetUser(
 	defer cancel()
 
 	query := `
-	SELECT id, version, fill_name, phone_number
+	SELECT id, version, full_name, phone_number
 	FROM todoapp.users
 	WHERE id=$1
 	`
