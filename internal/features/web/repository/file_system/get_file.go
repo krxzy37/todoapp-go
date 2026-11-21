@@ -1,6 +1,7 @@
 package web_fs_filesystem
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -10,7 +11,8 @@ import (
 func (r *WebRepository) GetFIle(filePath string) ([]byte, error) {
 	file, err := os.ReadFile(filePath)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
+
 			return nil, fmt.Errorf("file: %s: %w", filePath, core_errors.ErrNotFound)
 		}
 		return nil, fmt.Errorf("get file: %s: %w", filePath, err)
