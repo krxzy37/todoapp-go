@@ -52,6 +52,24 @@ func (r *PatchTaskRequest) Validate() error {
 
 type PatchUserResponse TaskDTOResponse
 
+// PatchTask godoc
+// @Summary Update a task
+// @Description Updates information about an already existing task in the system
+// @Description ### Field update logic (Three-state logic):
+// @Description 1. **Field not provided**: `description` is ignored, the value in the DB does not change
+// @Description 2. **Value explicitly provided**: `"description": "Go for a walk with Bobik at 06:30 AM"`
+// @Description 3. **Explicitly passed null**: `"description": null` - clears the field in the DB (set to NULL)
+// @Description Restrictions: `title` and `completed` cannot be set to null
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param id path int true "ID of the task to update"
+// @Param request body PatchTaskRequest true "PatchTask request body"
+// @Success 200 {object} PatchUserResponse "Successfully updated task"
+// @Failure 400 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure 404 {object} core_http_response.ErrorResponse "Task not found"
+// @Failure 500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router /tasks/{id} [patch]
 func (h *TasksHTTPHandler) PatchTask(rw http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
