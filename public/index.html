@@ -1,70 +1,1672 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="ru" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <title>My Frontend</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Список дел</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%235b8ff9'/%3E%3Cstop offset='1' stop-color='%238f7cf7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M9.5 16.5l4.2 4.2L23 11.5' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<script>
+  // Тема применяется до первой отрисовки, чтобы страница не «мигала».
+  try {
+    var savedTheme = localStorage.getItem('todoapp-theme');
+    if (savedTheme === 'light' || savedTheme === 'dark') document.documentElement.setAttribute('data-theme', savedTheme);
+  } catch (e) {}
+</script>
+<style>
+/* ─────────────────────────────── ТЕМЫ ─────────────────────────────── */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f1f3f5;
+  --hover: #eceff2;
+  --border: #e3e6ea;
+  --border-strong: #c9ced6;
+  --text: #1d2125;
+  --text-2: #5f6670;
+  --muted: #8b929b;
+  --primary: #0b66e4;
+  --primary-hover: #0957c4;
+  --primary-soft: #e7f0fd;
+  --ring: rgba(11, 102, 228, .18);
+  --row-hover-bg: #eef4fe;
+  --row-hover-border: #9fc2f5;
+  --blue: #0b66e4;   --blue-soft: #e7f0fd;
+  --green: #188038;  --green-soft: #e6f4ea;  --green-solid: #1e9e4a;
+  --amber: #996c00;  --amber-soft: #fcf1d6;
+  --purple: #7b4fd6; --purple-soft: #f2ecfd;
+  --red: #d93025;    --red-soft: #fdeceb;    --red-border: #f6c6c1;
+  --track: #eceff2;
+  --overlay: rgba(17, 20, 24, .5);
+  --shadow: 0 1px 2px rgba(16, 24, 40, .04);
+  --shadow-lg: 0 18px 48px rgba(16, 24, 40, .18);
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  --bg: #0e1013;
+  --surface: #171a1f;
+  --surface-2: #1f2329;
+  --hover: #262b32;
+  --border: #2a2f36;
+  --border-strong: #3c434c;
+  --text: #e8eaed;
+  --text-2: #a6adb6;
+  --muted: #757d87;
+  --primary: #3381f0;
+  --primary-hover: #4b91f5;
+  --primary-soft: rgba(51, 129, 240, .16);
+  --ring: rgba(51, 129, 240, .3);
+  --row-hover-bg: rgba(51, 129, 240, .08);
+  --row-hover-border: rgba(51, 129, 240, .5);
+  --blue: #5b9cf6;   --blue-soft: rgba(91, 156, 246, .15);
+  --green: #4cc47a;  --green-soft: rgba(76, 196, 122, .14); --green-solid: #2aa358;
+  --amber: #e2b440;  --amber-soft: rgba(226, 180, 64, .14);
+  --purple: #b08cf5; --purple-soft: rgba(176, 140, 245, .15);
+  --red: #f07167;    --red-soft: rgba(240, 113, 103, .12); --red-border: rgba(240, 113, 103, .35);
+  --track: #262b31;
+  --overlay: rgba(0, 0, 0, .6);
+  --shadow: none;
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, .55);
+  color-scheme: dark;
+}
 
+/* ─────────────────────────────── БАЗА ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+body.modal-open { overflow: hidden; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--primary); }
+.i { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: block; }
 
-    <style>
-        body {
-            font-family: sans-serif;
-            padding: 40px;
-            background: #f5f5f5;
-            color: #222;
-        }
+/* ─────────────────────────────── КАРКАС ─────────────────────────────── */
+.app { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 256px; flex-shrink: 0;
+  position: sticky; top: 0; height: 100vh;
+  display: flex; flex-direction: column;
+  padding: 26px 16px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+.main { flex: 1; min-width: 0; padding: 36px 40px 64px; }
 
-        button {
-            padding: 10px 20px;
-            font-size: 14px;
-            cursor: pointer;
-            background: #2563eb;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-        }
+.brand { display: flex; align-items: center; gap: 12px; padding: 0 6px; }
+.brand-logo {
+  width: 40px; height: 40px; border-radius: 11px;
+  display: grid; place-items: center; color: #fff;
+  background: linear-gradient(135deg, #5b8ff9 0%, #8f7cf7 100%);
+  box-shadow: 0 4px 12px rgba(91, 143, 249, .3);
+}
+.brand-name { font-size: 19px; font-weight: 700; letter-spacing: -.01em; }
+.badge-v { font-size: 11.5px; font-weight: 600; color: var(--muted); background: var(--surface-2); padding: 2px 7px; border-radius: 6px; }
 
-        button:hover {
-            background: #1d4ed8;
-        }
+.nav-label { margin: 34px 0 10px; padding: 0 10px; font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.nav { display: flex; flex-direction: column; gap: 4px; }
+.nav a {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 10px;
+  color: var(--text-2); text-decoration: none; font-size: 15px; font-weight: 500;
+  transition: background .15s, color .15s;
+}
+.nav a:hover { background: var(--surface-2); color: var(--text); }
+.nav a.active { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
 
-        ul {
-            margin-top: 16px;
-            padding: 0;
-            list-style: none;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
+.theme-card {
+  margin-top: 28px; width: 100%;
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; border-radius: 12px;
+  background: var(--bg); border: 1px solid var(--border);
+  color: var(--text-2); font-size: 14px; text-align: left;
+}
+.theme-card:hover { border-color: var(--border-strong); }
+.theme-card:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
+.switch { position: relative; margin-left: auto; width: 40px; height: 22px; border-radius: 999px; background: var(--border-strong); transition: background .2s; flex-shrink: 0; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform .2s; }
+.switch.on { background: var(--primary); }
+.switch.on::after { transform: translateX(18px); }
 
-        li {
-            padding: 12px 16px;
-            border-bottom: 1px solid #f0f0f0;
-        }
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+.page-head h1 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
 
-        li:last-child {
-            border-bottom: none;
-        }
-    </style>
+/* ─────────────────────────────── КНОПКИ ─────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 40px; padding: 0 18px; border-radius: 10px;
+  border: 1px solid transparent; font-size: 14.5px; font-weight: 600; white-space: nowrap;
+  transition: background .15s, border-color .15s, color .15s, box-shadow .15s, opacity .15s;
+}
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
+.btn:disabled { opacity: .65; cursor: not-allowed; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+.btn-secondary { background: var(--surface-2); border-color: var(--border); color: var(--text); }
+.btn-secondary:hover:not(:disabled) { background: var(--hover); border-color: var(--border-strong); }
+.btn-outline { background: var(--surface); border-color: var(--border); color: var(--text); }
+.btn-outline:hover:not(:disabled) { background: var(--surface-2); border-color: var(--border-strong); }
+.btn-danger-soft { background: var(--red-soft); border-color: var(--red-border); color: var(--red); }
+.btn-danger-soft:hover:not(:disabled) { border-color: var(--red); }
+.btn-danger { background: #dc3545; color: #fff; }
+.btn-danger:hover:not(:disabled) { background: #c42d3c; }
+.btn-sm { height: 32px; padding: 0 12px; font-size: 13.5px; border-radius: 8px; gap: 6px; }
+.push-right { margin-left: auto; }
 
+.icon-btn {
+  width: 34px; height: 34px; display: grid; place-items: center;
+  border: 0; border-radius: 9px; background: transparent; color: var(--muted);
+  transition: background .15s, color .15s;
+}
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+.icon-btn.danger:hover { background: var(--red-soft); color: var(--red); }
+.icon-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
+
+.spinner { width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid var(--border); border-top-color: var(--primary); animation: spin .7s linear infinite; flex-shrink: 0; }
+.spinner.sm { width: 15px; height: 15px; border-width: 2px; }
+.btn-primary .spinner, .btn-danger .spinner { border-color: rgba(255, 255, 255, .35); border-top-color: #fff; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─────────────────────────────── КАРТОЧКИ, ФИЛЬТРЫ ─────────────────────────────── */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+.filters { display: flex; flex-direction: column; gap: 14px; padding: 16px 20px; margin-bottom: 20px; }
+.filters-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 14px; }
+.lbl { font-size: 14.5px; color: var(--text-2); white-space: nowrap; }
+
+.input-sm {
+  height: 38px; padding: 0 12px; border-radius: 10px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 14.5px; outline: none; transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.input-sm:hover { border-color: var(--border-strong); }
+.input-sm:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--ring); background: var(--surface); }
+.date-pair { display: inline-flex; align-items: center; gap: 12px; }
+.input-date { width: 180px; }
+.input-sm.invalid { border-color: var(--red); }
+
+/* выбор количества на странице: число + быстрый выбор */
+.pagesize { display: inline-flex; align-items: center; height: 38px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); transition: border-color .15s, box-shadow .15s; }
+.pagesize:hover { border-color: var(--border-strong); }
+.pagesize:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--ring); }
+.pagesize input { width: 48px; height: 100%; border: 0; background: transparent; outline: none; text-align: center; font-size: 15px; font-weight: 500; -moz-appearance: textfield; appearance: textfield; }
+.pagesize input::-webkit-outer-spin-button, .pagesize input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.pagesize .sep { width: 1px; height: 20px; background: var(--border-strong); }
+.pagesize select {
+  height: 100%; border: 0; outline: none; background-color: transparent;
+  padding: 0 28px 0 10px; font-size: 13px; color: var(--muted);
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b929b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 8px center; background-size: 14px;
+}
+select option { background: var(--surface); color: var(--text); }
+
+/* ─────────────────────────────── ВЫБОР ПОЛЬЗОВАТЕЛЯ (с поиском) ─────────────────────────────── */
+.picker { position: relative; flex: 0 1 340px; min-width: 210px; }
+.picker-trigger {
+  width: 100%; height: 38px; display: flex; align-items: center; gap: 10px;
+  padding: 0 12px 0 14px; border-radius: 10px; text-align: left;
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 14.5px; font-weight: 500; transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.picker-trigger:hover { border-color: var(--border-strong); }
+.picker-trigger:focus-visible { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--ring); }
+.picker.open .picker-trigger { border-color: var(--primary); box-shadow: 0 0 0 3px var(--ring); background: var(--surface); }
+.picker-value { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.picker-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.picker-trigger .chev { margin-left: auto; color: var(--muted); transition: transform .2s; }
+.picker.open .chev { transform: rotate(180deg); }
+.picker-panel {
+  position: absolute; z-index: 40; top: calc(100% + 6px); left: 0; right: 0; min-width: 260px;
+  padding: 8px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-lg);
+  animation: pop .14s ease;
+}
+.picker-search { position: relative; }
+.picker-search .i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+.picker-search input {
+  width: 100%; height: 38px; padding: 0 12px 0 34px; border-radius: 9px;
+  background: var(--surface); border: 1px solid var(--primary); box-shadow: 0 0 0 3px var(--ring);
+  outline: none; font-size: 14.5px;
+}
+.picker-list { max-height: 290px; overflow-y: auto; margin-top: 6px; }
+.picker-opt { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 14.5px; font-weight: 500; }
+.picker-opt:hover, .picker-opt.kb { background: var(--surface-2); }
+.picker-opt.selected { background: var(--primary-soft); color: var(--primary); }
+.picker-opt .opt-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.picker-opt .uid { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.picker-opt.selected .uid { color: var(--primary); opacity: .75; }
+.picker-opt .tick { margin-left: auto; }
+.all-ico { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2); flex-shrink: 0; }
+.picker-empty { padding: 14px 10px; text-align: center; color: var(--muted); font-size: 14px; }
+
+/* ─────────────────────────────── АВАТАРЫ, ЧИПЫ ─────────────────────────────── */
+.avatar { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; color: #fff; font-weight: 700; font-size: 19px; letter-spacing: .02em; text-shadow: 0 1px 1px rgba(0, 0, 0, .12); }
+.avatar.sm { width: 28px; height: 28px; font-size: 11px; }
+.avatar.xs { width: 22px; height: 22px; font-size: 9.5px; }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); font-size: 12.5px; font-weight: 500; white-space: nowrap; }
+.chip .i { color: var(--muted); }
+.chip b { font-weight: 500; color: var(--text); }
+.chip .dim { color: var(--muted); font-size: 11.5px; }
+.chip-outline { background: var(--surface); border: 1px solid var(--border); }
+.chip-amber { background: var(--amber-soft); color: var(--amber); }
+.chip-green { background: var(--green-soft); color: var(--green); }
+.chip-amber .i, .chip-green .i { color: currentColor; }
+
+/* ─────────────────────────────── ЗАДАЧИ ─────────────────────────────── */
+.list { display: flex; flex-direction: column; gap: 10px; }
+.task {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 20px 22px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow);
+  transition: background .15s, border-color .15s, opacity .15s;
+}
+.task:hover { background: var(--row-hover-bg); border-color: var(--row-hover-border); }
+.task.busy { opacity: .55; pointer-events: none; }
+.task-check {
+  width: 24px; height: 24px; margin-top: 1px; padding: 0; flex-shrink: 0;
+  display: grid; place-items: center; border-radius: 50%;
+  border: 2px solid var(--border-strong); background: transparent; color: transparent;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.task-check:hover { border-color: var(--green-solid); color: var(--green-solid); }
+.task-check:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
+.task.done .task-check { background: var(--green-solid); border-color: var(--green-solid); color: #fff; }
+.task-body { flex: 1; min-width: 0; }
+.task-title { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.task.done .task-title { color: var(--muted); text-decoration: line-through; }
+.task-desc { margin: 4px 0 0; color: var(--text-2); font-size: 15px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.task-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.task-actions { display: flex; gap: 4px; margin: -4px -6px 0 0; opacity: 0; transition: opacity .15s; }
+.task:hover .task-actions, .task:focus-within .task-actions { opacity: 1; }
+@media (hover: none) { .task-actions { opacity: 1; } }
+
+/* ─────────────────────────────── ПОЛЬЗОВАТЕЛИ ─────────────────────────────── */
+.users-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.user-card { display: flex; flex-direction: column; padding: 24px 24px 20px; transition: border-color .15s, box-shadow .15s; }
+.user-card:hover { border-color: var(--border-strong); box-shadow: 0 6px 20px rgba(16, 24, 40, .06); }
+.user-name { margin: 16px 0 0; font-size: 18px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.user-phone { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 14px; color: var(--text-2); }
+.user-phone .i { color: var(--muted); }
+.user-phone.empty span { font-style: italic; color: var(--muted); }
+.user-badges { display: flex; gap: 8px; margin: 16px 0 20px; }
+.user-divider { height: 1px; background: var(--border); margin-top: auto; } /* низ карточек в одном ряду выравнивается */
+.user-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 18px; }
+
+/* ─────────────────────────────── СТАТИСТИКА ─────────────────────────────── */
+.stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-bottom: 18px; }
+.stat { padding: 24px 22px 26px; border-top: 3px solid var(--c); }
+.stat-ico { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--c-soft); color: var(--c); }
+.stat-label { margin-top: 22px; font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-2); line-height: 1.4; }
+.stat-value { margin-top: 4px; font-size: 42px; font-weight: 800; line-height: 1.15; letter-spacing: -.02em; color: var(--c); white-space: nowrap; }
+.stat-value small { font-size: 22px; font-weight: 700; margin-left: 2px; letter-spacing: 0; }
+.stat-sub { margin-top: 6px; font-size: 13.5px; color: var(--text-2); }
+.c-blue   { --c: var(--blue);   --c-soft: var(--blue-soft); }
+.c-green  { --c: var(--green);  --c-soft: var(--green-soft); }
+.c-amber  { --c: var(--amber);  --c-soft: var(--amber-soft); }
+.c-purple { --c: var(--purple); --c-soft: var(--purple-soft); }
+
+.progress-card { padding: 24px 28px 28px; }
+.progress-card h3 { margin: 0 0 22px; font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-2); }
+.prog-row + .prog-row { margin-top: 22px; }
+.prog-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; font-size: 14.5px; }
+.prog-head b { color: var(--c); font-weight: 700; white-space: nowrap; }
+.bar { height: 10px; border-radius: 999px; background: var(--track); overflow: hidden; }
+.bar > span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--c); transition: width .7s cubic-bezier(.2, .8, .2, 1); }
+
+/* ─────────────────────────────── СОСТОЯНИЯ ─────────────────────────────── */
+.state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 80px 20px; color: var(--text-2); }
+.state .big { width: 56px; height: 56px; color: var(--border-strong); stroke-width: 1.5; }
+.state h3 { margin: 16px 0 6px; font-size: 17px; font-weight: 700; color: var(--text); }
+.state p { margin: 0; font-size: 14.5px; max-width: 520px; overflow-wrap: anywhere; }
+.state .btn { margin-top: 18px; }
+.state-error .big { color: var(--red); opacity: .8; }
+.loading { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 80px 0; color: var(--muted); font-size: 14.5px; }
+.is-loading { opacity: .5; pointer-events: none; transition: opacity .15s; }
+.fade-in { animation: fadeIn .22s ease; }
+.flash { animation: flash 1.8s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes pop { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes flash { 0%, 35% { background: var(--row-hover-bg); border-color: var(--primary); box-shadow: 0 0 0 3px var(--ring); } }
+
+/* ─────────────────────────────── ПАГИНАЦИЯ ─────────────────────────────── */
+.pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 24px; transition: opacity .2s; }
+.pg-btn { min-width: 36px; height: 36px; padding: 0 10px; display: inline-grid; place-items: center; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); font-weight: 600; font-size: 14px; }
+.pg-btn:hover:not(:disabled):not(.active) { border-color: var(--border-strong); color: var(--text); }
+.pg-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; cursor: default; }
+.pg-btn:disabled { opacity: .4; cursor: default; }
+.pg-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
+.pg-gap { padding: 0 4px; color: var(--muted); }
+
+/* ─────────────────────────────── МОДАЛКИ ─────────────────────────────── */
+.overlay {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  background: var(--overlay);
+  opacity: 0; visibility: hidden; transition: opacity .18s, visibility .18s;
+}
+.overlay.open { opacity: 1; visibility: visible; }
+.modal {
+  width: 100%; max-width: 520px; max-height: calc(100vh - 40px); overflow-y: auto;
+  padding: 26px 28px 24px; border-radius: 16px;
+  background: var(--surface); box-shadow: var(--shadow-lg);
+  transform: translateY(10px) scale(.98); transition: transform .18s;
+}
+.modal.modal-sm { max-width: 440px; }
+.overlay.open .modal { transform: none; }
+.modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.modal-head h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
+.modal-head .icon-btn { margin-right: -8px; }
+.modal-text { margin: 12px 0 0; color: var(--text-2); font-size: 15px; overflow-wrap: anywhere; }
+.modal-text b { color: var(--text); }
+.field { margin-top: 18px; }
+.f-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: var(--text-2); }
+.req { color: var(--red); }
+.input, .textarea, .select {
+  width: 100%; height: 44px; padding: 0 14px; border-radius: 10px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 15px; outline: none; transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.textarea { height: auto; min-height: 96px; padding: 11px 14px; resize: vertical; line-height: 1.45; }
+.select {
+  padding-right: 40px; cursor: pointer;
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b929b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; background-size: 16px;
+}
+.input:hover, .textarea:hover, .select:hover { border-color: var(--border-strong); }
+.input:focus, .textarea:focus, .select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--ring); background-color: var(--surface); }
+.input::placeholder, .textarea::placeholder { color: var(--muted); }
+.input:disabled, .textarea:disabled, .select:disabled { opacity: .55; cursor: not-allowed; }
+.invalid, .invalid:hover, .invalid:focus { border-color: var(--red); }
+.invalid:focus { box-shadow: 0 0 0 3px var(--red-soft); }
+.f-error { margin-top: 6px; font-size: 13px; color: var(--red); }
+.f-hint { margin-top: 6px; font-size: 13px; color: var(--muted); }
+.check-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 14.5px; color: var(--text-2); cursor: pointer; user-select: none; }
+.check-row input { width: 18px; height: 18px; margin: 0; accent-color: var(--primary); cursor: pointer; }
+.modal-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+
+/* ─────────────────────────────── УВЕДОМЛЕНИЯ ─────────────────────────────── */
+.toasts { position: fixed; right: 20px; bottom: 20px; z-index: 200; display: flex; flex-direction: column; gap: 10px; width: min(400px, calc(100vw - 40px)); pointer-events: none; }
+.toast {
+  pointer-events: auto; display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 12px 12px 14px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--c);
+  box-shadow: var(--shadow-lg); font-size: 14px; animation: toastIn .22s ease;
+}
+.toast > .i { color: var(--c); margin-top: 1px; }
+.toast.out { opacity: 0; transform: translateX(12px); transition: opacity .2s, transform .2s; }
+.toast-success { --c: var(--green-solid); }
+.toast-error { --c: var(--red); }
+.toast-info { --c: var(--primary); }
+.toast-body { flex: 1; min-width: 0; }
+.toast-title { font-weight: 600; }
+.toast-detail { margin-top: 2px; font-size: 13px; color: var(--text-2); overflow-wrap: anywhere; }
+.toast-x { width: 24px; height: 24px; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--muted); padding: 0; }
+.toast-x:hover { background: var(--surface-2); color: var(--text); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ─────────────────────────────── АДАПТИВ ─────────────────────────────── */
+@media (max-width: 1180px) { .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 860px) {
+  .app { flex-direction: column; }
+  .sidebar { position: sticky; z-index: 50; width: auto; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 16px; border-right: 0; border-bottom: 1px solid var(--border); }
+  .nav-label, .badge-v { display: none; }
+  .nav { flex-direction: row; gap: 2px; }
+  .nav a { padding: 8px 10px; }
+  .theme-card { width: auto; margin: 0 0 0 auto; padding: 8px 10px; }
+  .main { padding: 24px 16px 48px; }
+  .picker { flex: 1 1 100%; }
+}
+@media (max-width: 600px) {
+  .nav a .txt, .theme-text, .brand-name { display: none; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .page-head h1 { font-size: 24px; }
+  .task { padding: 16px; gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
 </head>
-
 <body>
-    Hello, World!
-    <button onclick="loadUsers()">Get Users List</button>
 
-    <ul id="users-list"></ul>
+<div class="app">
+  <!-- ═════════════════════════ Боковая панель ═════════════════════════ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i data-icon="check_square" data-size="22"></i></div>
+      <span class="brand-name">TodoApp</span>
+      <span class="badge-v">v1</span>
+    </div>
 
-    <script>
-        async function loadUsers() {
-            const result = await fetch('http://127.0.0.1:5050/api/v1/users')
-            const users = await result.json()
+    <div class="nav-label">Навигация</div>
+    <nav class="nav">
+      <a href="#/tasks" data-route="tasks"><i data-icon="check_square" data-size="19"></i><span class="txt">Задачи</span></a>
+      <a href="#/users" data-route="users"><i data-icon="users" data-size="19"></i><span class="txt">Пользователи</span></a>
+      <a href="#/stats" data-route="stats"><i data-icon="chart" data-size="19"></i><span class="txt">Статистика</span></a>
+    </nav>
 
-            const list = document.getElementById('users-list')
-            list.innerHTML = users.map(user => `<li>ID: ${user.id} - FullName: ${user.full_name}</li>`).join('')
-        }
-    </script>
+    <button type="button" class="theme-card" id="theme-toggle" role="switch" aria-checked="true" title="Переключить тему">
+      <span class="theme-ico"></span>
+      <span class="theme-text">Light mode</span>
+      <span class="switch on"></span>
+    </button>
+  </aside>
+
+  <main class="main">
+    <!-- ═════════════════════════ Задачи ═════════════════════════ -->
+    <section class="page" id="page-tasks">
+      <header class="page-head">
+        <h1>Задачи</h1>
+        <button type="button" class="btn btn-primary" id="btn-new-task"><i data-icon="plus"></i>Новая задача</button>
+      </header>
+
+      <div class="card filters">
+        <div class="filters-row">
+          <span class="lbl">Пользователь</span>
+          <div id="tasks-user-picker"></div>
+          <span class="lbl">На странице</span>
+          <div class="pagesize" id="tasks-page-size"></div>
+          <button type="button" class="btn btn-secondary push-right" id="tasks-reset">Сбросить</button>
+        </div>
+      </div>
+
+      <div id="tasks-container"></div>
+      <div id="tasks-pagination"></div>
+    </section>
+
+    <!-- ═════════════════════════ Пользователи ═════════════════════════ -->
+    <section class="page" id="page-users" hidden>
+      <header class="page-head">
+        <h1>Пользователи</h1>
+        <button type="button" class="btn btn-primary" id="btn-new-user"><i data-icon="plus"></i>Новый пользователь</button>
+      </header>
+
+      <div class="card filters">
+        <div class="filters-row">
+          <span class="lbl">На странице</span>
+          <div class="pagesize" id="users-page-size"></div>
+        </div>
+      </div>
+
+      <div id="users-container"></div>
+      <div id="users-pagination"></div>
+    </section>
+
+    <!-- ═════════════════════════ Статистика ═════════════════════════ -->
+    <section class="page" id="page-stats" hidden>
+      <header class="page-head">
+        <h1>Статистика</h1>
+        <button type="button" class="btn btn-secondary" id="stats-refresh"><i data-icon="refresh" data-size="17"></i>Refresh</button>
+      </header>
+
+      <div class="card filters">
+        <div class="filters-row">
+          <span class="lbl">Пользователь</span>
+          <div id="stats-user-picker"></div>
+          <span class="date-pair">
+            <label class="lbl" for="stats-from">С</label>
+            <input type="date" class="input-sm input-date" id="stats-from">
+          </span>
+          <span class="date-pair">
+            <label class="lbl" for="stats-to">По</label>
+            <input type="date" class="input-sm input-date" id="stats-to" title="Включительно">
+          </span>
+          <button type="button" class="btn btn-secondary push-right" id="stats-reset">Сбросить</button>
+        </div>
+        <div class="filters-row">
+          <button type="button" class="btn btn-primary" id="stats-apply">Применить</button>
+        </div>
+      </div>
+
+      <div id="stats-container"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ═════════════════════════ Модалка: задача ═════════════════════════ -->
+<div class="overlay" id="task-modal" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
+  <form class="modal" id="task-form" novalidate autocomplete="off">
+    <div class="modal-head">
+      <h2 id="task-modal-title">Новая задача</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Закрыть"><i data-icon="x"></i></button>
+    </div>
+
+    <div class="field">
+      <label class="f-label" for="task-title">Заголовок <span class="req">*</span></label>
+      <input class="input" id="task-title" maxlength="100" placeholder="Что нужно сделать?">
+      <div class="f-error" hidden></div>
+    </div>
+
+    <div class="field">
+      <label class="f-label" for="task-desc">Описание</label>
+      <textarea class="textarea" id="task-desc" maxlength="1000" placeholder="Необязательное описание..."></textarea>
+      <div class="f-error" hidden></div>
+      <label class="check-row" id="task-clear-row"><input type="checkbox" id="task-clear-desc">Очистить описание (установить null)</label>
+    </div>
+
+    <div class="field" id="task-author-field">
+      <label class="f-label" for="task-author">Автор <span class="req">*</span></label>
+      <select class="select" id="task-author"></select>
+      <div class="f-error" hidden></div>
+      <div class="f-hint" id="task-author-hint" hidden>Пользователей пока нет — сначала <a href="#/users" data-close>создайте пользователя</a>.</div>
+    </div>
+
+    <div class="modal-foot">
+      <button type="button" class="btn btn-secondary" data-close>Отмена</button>
+      <button type="submit" class="btn btn-primary" id="task-submit">Создать задачу</button>
+    </div>
+  </form>
+</div>
+
+<!-- ═════════════════════════ Модалка: пользователь ═════════════════════════ -->
+<div class="overlay" id="user-modal" role="dialog" aria-modal="true" aria-labelledby="user-modal-title">
+  <form class="modal" id="user-form" novalidate autocomplete="off">
+    <div class="modal-head">
+      <h2 id="user-modal-title">Новый пользователь</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Закрыть"><i data-icon="x"></i></button>
+    </div>
+
+    <div class="field">
+      <label class="f-label" for="user-name">Полное имя <span class="req">*</span></label>
+      <input class="input" id="user-name" maxlength="100" placeholder="например, Иван Иванов">
+      <div class="f-error" hidden></div>
+    </div>
+
+    <div class="field">
+      <label class="f-label" for="user-phone">Номер телефона</label>
+      <input class="input" id="user-phone" type="tel" inputmode="tel" maxlength="20" placeholder="например, +79998887766">
+      <div class="f-error" hidden></div>
+      <label class="check-row" id="user-clear-row"><input type="checkbox" id="user-clear-phone">Очистить номер телефона (установить null)</label>
+    </div>
+
+    <div class="modal-foot">
+      <button type="button" class="btn btn-secondary" data-close>Отмена</button>
+      <button type="submit" class="btn btn-primary" id="user-submit">Создать пользователя</button>
+    </div>
+  </form>
+</div>
+
+<!-- ═════════════════════════ Модалка: подтверждение ═════════════════════════ -->
+<div class="overlay" id="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <h2 id="confirm-title">Удалить?</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Закрыть"><i data-icon="x"></i></button>
+    </div>
+    <p class="modal-text" id="confirm-text"></p>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-secondary" data-close id="confirm-cancel">Отмена</button>
+      <button type="button" class="btn btn-danger" id="confirm-ok">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+
+// ─────────────────────────────────────────────────────────────
+// НАСТРОЙКИ
+// ─────────────────────────────────────────────────────────────
+// Страница открыта как файл (file://)  → API на локальном сервере 127.0.0.1:5050.
+// Страницу отдаёт сам Go-сервер        → API на том же адресе.
+// Другой адрес можно указать параметром: index.html?api=http://127.0.0.1:8080/api/v1
+const API_BASE = (new URLSearchParams(location.search).get('api') ||
+  (location.protocol === 'file:' ? 'http://127.0.0.1:5050' : '') + '/api/v1').replace(/\/+$/, '');
+const PAGE_SIZES = [5, 10, 20, 50, 100];
+const DEFAULT_PAGE_SIZE = 20;
+const THEME_KEY = 'todoapp-theme';
+
+// ─────────────────────────────────────────────────────────────
+// ИКОНКИ (inline SVG, 24×24, обводка)
+// ─────────────────────────────────────────────────────────────
+const ICONS = {
+  check_square: '<path d="M21 10.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.5"/><path d="m9 11 3 3L22 4"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  chart: '<path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+  moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  edit: '<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.38 2.62a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/>',
+  trash: '<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>',
+  user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  chevron_down: '<path d="m6 9 6 6 6-6"/>',
+  chevron_left: '<path d="m15 18-6-6 6-6"/>',
+  chevron_right: '<path d="m9 18 6-6-6-6"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  refresh: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  empty: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8"/>',
+  circle: '<circle cx="12" cy="12" r="9"/>',
+  circle_check: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  alert: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>',
+  info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+};
+const icon = (name, size = 18, cls = '') =>
+  `<svg class="i ${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ''}</svg>`;
+
+// ─────────────────────────────────────────────────────────────
+// УТИЛИТЫ
+// ─────────────────────────────────────────────────────────────
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const strLen = (s) => [...s].length; // длина в символах (как считает сервер)
+
+// Go отдаёт время в RFC3339 с наносекундами — обрезаем до миллисекунд для Date.
+function parseDate(s) {
+  if (!s) return null;
+  const d = new Date(String(s).replace(/(\.\d{3})\d+/, '$1'));
+  return isNaN(d) ? null : d;
+}
+const fmtDateShort = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const fmtDateTime = (d) => d.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+// 57с · 4м 12с · 3ч 5м · 2д 6ч
+function fmtDuration(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const d = Math.floor(total / 86400), h = Math.floor(total % 86400 / 3600), m = Math.floor(total % 3600 / 60), s = total % 60;
+  if (d) return `${d}д ${h}ч`;
+  if (h) return `${h}ч ${m}м`;
+  if (m) return `${m}м ${s}с`;
+  return `${s}с`;
+}
+
+// Строка Go time.Duration ("1h2m3.5s", "350ms", "1.2µs") → миллисекунды.
+function parseGoDuration(str) {
+  if (typeof str !== 'string' || !str.trim()) return null;
+  const units = { h: 3600e3, m: 60e3, s: 1e3, ms: 1, us: 1e-3, 'µs': 1e-3, 'μs': 1e-3, ns: 1e-6 };
+  const re = /(\d+(?:\.\d+)?)(ns|us|µs|μs|ms|h|m|s)/g;
+  let total = 0, found = false, m;
+  while ((m = re.exec(str))) { total += parseFloat(m[1]) * units[m[2]]; found = true; }
+  return found ? total : null;
+}
+function fmtAvgDuration(ms) {
+  if (ms < 1) return '< 1мс';
+  if (ms < 1000) return `${Math.round(ms)}мс`;
+  if (ms < 10000) return `${(ms / 1000).toFixed(1)}с`;
+  return fmtDuration(ms);
+}
+
+function addDays(isoDate, days) {
+  const d = new Date(isoDate + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+// Аватар: инициалы + градиент, стабильный для каждого ID.
+const GRADIENTS = [
+  ['#3b82f6', '#6366f1'], ['#14b8a6', '#22c55e'], ['#f6921e', '#e5443a'], ['#ec4899', '#a855f7'],
+  ['#06b6d4', '#3b82f6'], ['#8b5cf6', '#d946ef'], ['#84cc16', '#10b981'], ['#f43f5e', '#fb923c'],
+];
+function initials(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  return ([...parts[0]][0] + (parts[1] ? [...parts[1]][0] : '')).toUpperCase();
+}
+function avatar(user, cls = '') {
+  const [a, b] = GRADIENTS[Math.abs(Number(user.id) || 0) % GRADIENTS.length];
+  return `<span class="avatar ${cls}" style="background:linear-gradient(135deg,${a},${b})" aria-hidden="true">${esc(initials(user.full_name))}</span>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// API
+// ─────────────────────────────────────────────────────────────
+class ApiError extends Error {
+  constructor({ status = 0, method = 'GET', path = '', message = '', error = '' }) {
+    super(message || error || `HTTP ${status}`);
+    Object.assign(this, { status, method, path, serverMessage: message, serverError: error });
+  }
+  // Человекочитаемое описание для уведомления.
+  get detail() {
+    if (this.status === 0) return `Нет связи с сервером (${API_BASE}). Проверьте, что бэкенд запущен.`;
+    const raw = `${this.serverMessage} ${this.serverError}`.toLowerCase();
+    if (raw.includes('violates foreign key')) return 'У пользователя есть задачи — сначала удалите их.';
+    if (this.status === 405) return `Сервер не поддерживает ${this.method} ${this.path} (405 Method Not Allowed).`;
+    if (this.status === 409) return 'Запись изменили параллельно. Обновите данные и попробуйте ещё раз.';
+    const label = { 400: 'Некорректный запрос', 404: 'Не найдено', 500: 'Ошибка сервера' }[this.status] || 'Ошибка';
+    const text = this.serverError || this.serverMessage;
+    return `${label} (${this.status})${text ? ': ' + text : ''}`;
+  }
+}
+
+// Сервер иногда пишет в тело два JSON подряд (ошибка + ответ) — тогда берём первый.
+function parseBody(text) {
+  if (!text || !text.trim()) return null;
+  try { return JSON.parse(text); } catch (_) { /* см. ниже */ }
+  const first = text.split('\n').find((line) => line.trim());
+  try { return JSON.parse(first); } catch (_) { return text.trim(); }
+}
+
+async function api(path, { method = 'GET', body } = {}) {
+  const init = { method };
+  if (body !== undefined) {
+    init.headers = { 'Content-Type': 'application/json' };
+    init.body = JSON.stringify(body);
+  }
+  let res;
+  try {
+    res = await fetch(API_BASE + path, init);
+  } catch (_) {
+    throw new ApiError({ status: 0, method, path });
+  }
+  const data = parseBody(await res.text().catch(() => ''));
+  if (!res.ok) {
+    const obj = data && typeof data === 'object' ? data : null;
+    throw new ApiError({
+      status: res.status, method, path,
+      message: obj ? String(obj.message || '') : '',
+      error: obj ? String(obj.error || '') : String(data || res.statusText || ''),
+    });
+  }
+  return data;
+}
+
+function expectArray(data) {
+  if (data == null) return [];
+  if (!Array.isArray(data)) throw new ApiError({ status: 500, message: 'Неожиданный ответ сервера' });
+  return data;
+}
+
+// ─────────────────────────────────────────────────────────────
+// СОСТОЯНИЕ
+// ─────────────────────────────────────────────────────────────
+const state = {
+  users: [],               // все пользователи: имена авторов, фильтры, выбор автора
+  usersById: new Map(),
+  usersLoaded: false,
+  tasks: { page: 0, pageSize: DEFAULT_PAGE_SIZE, userId: null, items: [], req: 0, highlight: null },
+  usersPage: { page: 0, pageSize: DEFAULT_PAGE_SIZE, items: [], req: 0, highlight: null },
+  statsReq: 0,
+};
+const pickers = [];
+let usersPromise = null;
+
+function refreshUsers() {
+  usersPromise = api('/users')
+    .then((list) => {
+      state.users = expectArray(list);
+      state.usersById = new Map(state.users.map((u) => [u.id, u]));
+      state.usersLoaded = true;
+      pickers.forEach((p) => p.refresh());
+      return state.users;
+    })
+    .catch((err) => { usersPromise = null; throw err; });
+  return usersPromise;
+}
+const ensureUsers = () => (state.usersLoaded ? Promise.resolve(state.users) : usersPromise || refreshUsers());
+
+// ─────────────────────────────────────────────────────────────
+// УВЕДОМЛЕНИЯ
+// ─────────────────────────────────────────────────────────────
+function toast(kind, title, detail = '') {
+  const box = $('#toasts');
+  const el = document.createElement('div');
+  el.className = `toast toast-${kind}`;
+  el.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+  const ico = { success: 'circle_check', error: 'alert', info: 'info' }[kind];
+  el.innerHTML = `${icon(ico, 18)}<div class="toast-body"><div class="toast-title"></div><div class="toast-detail"></div></div>
+    <button type="button" class="toast-x" aria-label="Закрыть">${icon('x', 14)}</button>`;
+  $('.toast-title', el).textContent = title;
+  $('.toast-detail', el).textContent = detail;
+  $('.toast-detail', el).hidden = !detail;
+  const remove = () => { el.classList.add('out'); setTimeout(() => el.remove(), 200); };
+  $('.toast-x', el).addEventListener('click', remove);
+  box.appendChild(el);
+  while (box.children.length > 4) box.firstElementChild.remove();
+  setTimeout(remove, kind === 'error' ? 8000 : 3500);
+}
+const toastError = (title, err) => toast('error', title, err instanceof ApiError ? err.detail : String(err?.message || err));
+
+// ─────────────────────────────────────────────────────────────
+// ОБЩИЕ СОСТОЯНИЯ БЛОКОВ: загрузка / пусто / ошибка
+// ─────────────────────────────────────────────────────────────
+function startLoading(id) {
+  const box = document.getElementById(id);
+  if (box.querySelector('.list, .users-grid, .stats-grid')) box.classList.add('is-loading'); // уже есть данные — просто приглушаем
+  else box.innerHTML = '<div class="loading"><span class="spinner"></span>Загрузка…</div>';
+}
+function showContent(id, html) {
+  const box = document.getElementById(id);
+  box.classList.remove('is-loading', 'fade-in');
+  box.innerHTML = html;
+  void box.offsetWidth; // перезапуск анимации
+  box.classList.add('fade-in');
+  return box;
+}
+const emptyState = (ico, title, text) =>
+  `<div class="state">${icon(ico, 56, 'big')}<h3>${title}</h3><p>${text}</p></div>`;
+function showError(id, title, err, retry) {
+  const box = showContent(id, `<div class="state state-error">${icon('alert', 48, 'big')}<h3>${esc(title)}</h3>
+    <p>${esc(err instanceof ApiError ? err.detail : err?.message || err)}</p>
+    <button type="button" class="btn btn-secondary btn-sm">${icon('refresh', 15)}Повторить</button></div>`);
+  $('.state-error .btn', box).addEventListener('click', retry);
+}
+
+function setBusy(btn, busy) {
+  if (busy) {
+    if (btn.dataset.html != null) return;
+    btn.dataset.html = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner sm"></span>${esc(btn.textContent.trim())}`;
+  } else if (btn.dataset.html != null) {
+    btn.innerHTML = btn.dataset.html;
+    delete btn.dataset.html;
+    btn.disabled = false;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// ПАГИНАЦИЯ (общего количества API не отдаёт → запрашиваем limit+1,
+// чтобы понять, есть ли следующая страница)
+// ─────────────────────────────────────────────────────────────
+function renderPagination(tab, currentPage, hasNextPage) {
+  const el = document.getElementById(`${tab}-pagination`);
+  if (currentPage === 0 && !hasNextPage) { el.innerHTML = ''; return; }
+
+  const btn = (page, content, { disabled = false, active = false, label = '' } = {}) =>
+    `<button type="button" class="pg-btn ${active ? 'active' : ''}"
+      ${disabled ? 'disabled' : ''} ${!disabled && !active ? `data-action="page" data-tab="${tab}" data-page="${page}"` : ''}
+      ${active ? 'aria-current="page"' : ''} ${label ? `aria-label="${label}"` : ''}>${content}</button>`;
+
+  // Номера страниц: первая, предыдущая, текущая, следующая (то, что знаем наверняка)
+  const pages = [];
+  if (currentPage > 1) pages.push(0);
+  if (currentPage > 2) pages.push('…');
+  if (currentPage > 0) pages.push(currentPage - 1);
+  pages.push(currentPage);
+  if (hasNextPage) pages.push(currentPage + 1);
+
+  el.innerHTML = `<nav class="pagination fade-in" aria-label="Страницы">
+    ${btn(currentPage - 1, icon('chevron_left', 18), { disabled: currentPage === 0, label: 'Предыдущая страница' })}
+    ${pages.map((p) => (p === '…' ? '<span class="pg-gap">…</span>' : btn(p, p + 1, { active: p === currentPage }))).join('')}
+    ${btn(currentPage + 1, icon('chevron_right', 18), { disabled: !hasNextPage, label: 'Следующая страница' })}
+  </nav>`;
+}
+function setPage(tab, page) {
+  if (tab === 'tasks') { state.tasks.page = page; loadTasks(); }
+  if (tab === 'users') { state.usersPage.page = page; loadUsers(); }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─────────────────────────────────────────────────────────────
+// КОМПОНЕНТ: выбор пользователя с поиском
+// ─────────────────────────────────────────────────────────────
+function createUserPicker(root, { onChange } = {}) {
+  root.classList.add('picker');
+  root.innerHTML = `
+    <button type="button" class="picker-trigger" aria-haspopup="listbox" aria-expanded="false">
+      <span class="picker-value"></span>${icon('chevron_down', 18, 'chev')}
+    </button>
+    <div class="picker-panel" hidden>
+      <div class="picker-search">${icon('search', 16)}<input type="text" placeholder="Поиск пользователей..." aria-label="Поиск пользователей" spellcheck="false"></div>
+      <div class="picker-list" role="listbox"></div>
+    </div>`;
+  const trigger = $('.picker-trigger', root);
+  const panel = $('.picker-panel', root);
+  const search = $('input', root);
+  const list = $('.picker-list', root);
+  let value = null; // null = «Все пользователи»
+  let options = [];
+  let kb = -1;      // подсветка с клавиатуры
+
+  const isOpen = () => root.classList.contains('open');
+
+  function renderTrigger() {
+    const u = value != null ? state.usersById.get(value) : null;
+    $('.picker-value', root).innerHTML = u
+      ? `${avatar(u, 'xs')}<span class="picker-text">${esc(u.full_name)}</span>`
+      : '<span class="picker-text">Все пользователи</span>';
+  }
+
+  function renderList() {
+    const q = search.value.trim().toLowerCase();
+    const idQuery = q.replace(/^(id:?\s*|#)/, '');
+    const users = state.users.filter((u) => !q || u.full_name.toLowerCase().includes(q) || String(u.id) === idQuery);
+    options = q ? users : [{ id: null }, ...users];
+    if (!options.length) { list.innerHTML = '<div class="picker-empty">Ничего не найдено</div>'; return; }
+    list.innerHTML = options.map((u, i) => {
+      const selected = (u.id ?? null) === value;
+      const inner = u.id == null
+        ? `<span class="all-ico">${icon('users', 15)}</span><span class="opt-name">Все пользователи</span>`
+        : `${avatar(u, 'sm')}<span class="opt-name">${esc(u.full_name)}</span><span class="uid">ID: ${u.id}</span>`;
+      return `<div class="picker-opt ${selected ? 'selected' : ''} ${i === kb ? 'kb' : ''}" role="option" aria-selected="${selected}" data-i="${i}">
+        ${inner}${selected ? icon('check', 16, 'tick') : ''}</div>`;
+    }).join('');
+  }
+
+  function open() {
+    pickers.forEach((p) => p !== self && p.close());
+    root.classList.add('open');
+    panel.hidden = false;
+    trigger.setAttribute('aria-expanded', 'true');
+    search.value = '';
+    kb = -1;
+    renderList();
+    search.focus();
+    $('.picker-opt.selected', list)?.scrollIntoView({ block: 'nearest' });
+    if (!state.usersLoaded) ensureUsers().then(() => isOpen() && renderList()).catch(() => {});
+  }
+  function close(focusTrigger = false) {
+    if (!isOpen()) return;
+    root.classList.remove('open');
+    panel.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    if (focusTrigger) trigger.focus();
+  }
+  function select(id) {
+    const changed = id !== value;
+    value = id;
+    renderTrigger();
+    close(true);
+    if (changed) onChange?.(value);
+  }
+  function moveKb(delta) {
+    if (!options.length) return;
+    kb = kb < 0 ? (delta > 0 ? 0 : options.length - 1) : (kb + delta + options.length) % options.length;
+    renderList();
+    $('.picker-opt.kb', list)?.scrollIntoView({ block: 'nearest' });
+  }
+
+  trigger.addEventListener('click', () => (isOpen() ? close() : open()));
+  trigger.addEventListener('keydown', (e) => {
+    if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !isOpen()) { e.preventDefault(); open(); }
+  });
+  search.addEventListener('input', () => { kb = search.value.trim() ? 0 : -1; renderList(); });
+  search.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); moveKb(1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); moveKb(-1); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (options[kb]) select(options[kb].id ?? null); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(true); }
+    else if (e.key === 'Tab') close();
+  });
+  list.addEventListener('mousedown', (e) => e.preventDefault()); // фокус остаётся в поиске
+  list.addEventListener('click', (e) => {
+    const opt = e.target.closest('.picker-opt');
+    if (opt) select(options[Number(opt.dataset.i)].id ?? null);
+  });
+  document.addEventListener('mousedown', (e) => { if (!root.contains(e.target)) close(); });
+
+  const self = {
+    get value() { return value; },
+    set(id) { value = id; renderTrigger(); },
+    close,
+    refresh() {
+      if (value != null && state.usersLoaded && !state.usersById.has(value)) { // пользователя удалили
+        value = null;
+        onChange?.(null);
+      }
+      renderTrigger();
+      if (isOpen()) renderList();
+    },
+  };
+  renderTrigger();
+  pickers.push(self);
+  return self;
+}
+
+// ─────────────────────────────────────────────────────────────
+// КОМПОНЕНТ: «На странице» — своё число или быстрый выбор
+// ─────────────────────────────────────────────────────────────
+function createPageSize(root, { value, onChange }) {
+  root.innerHTML = `<input type="number" min="1" max="100" aria-label="Записей на странице"><span class="sep"></span><select aria-label="Быстрый выбор"></select>`;
+  const input = $('input', root);
+  const select = $('select', root);
+
+  function set(v, fire) {
+    v = Math.round(Number(v));
+    v = Number.isFinite(v) && v >= 1 ? Math.min(100, v) : value; // пусто или мусор → оставляем прежнее
+    const changed = v !== value;
+    value = v;
+    input.value = v;
+    const values = [...new Set([...PAGE_SIZES, v])].sort((a, b) => a - b);
+    select.innerHTML = values.map((x) => `<option value="${x}">${x}</option>`).join('');
+    select.value = String(v);
+    if (fire && changed) onChange(v);
+  }
+  input.addEventListener('change', () => set(input.value, true));
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); set(input.value, true); } });
+  select.addEventListener('change', () => set(select.value, true));
+  set(value, false);
+  return { set: (v) => set(v, false) };
+}
+
+// ─────────────────────────────────────────────────────────────
+// ЗАДАЧИ
+// ─────────────────────────────────────────────────────────────
+async function loadTasks() {
+  const st = state.tasks;
+  const req = ++st.req;
+  startLoading('tasks-container');
+  const params = new URLSearchParams({ limit: st.pageSize + 1, offset: st.page * st.pageSize });
+  if (st.userId != null) params.set('user_id', st.userId);
+
+  try {
+    const [data] = await Promise.all([api(`/tasks?${params}`), ensureUsers().catch(() => null)]);
+    if (req !== st.req) return; // пришёл ответ на устаревший запрос
+    const items = expectArray(data);
+    if (!items.length && st.page > 0) { st.page -= 1; return loadTasks(); } // страница опустела
+    st.items = items.slice(0, st.pageSize);
+    renderTasks();
+    renderPagination('tasks', st.page, items.length > st.pageSize);
+  } catch (err) {
+    if (req !== st.req) return;
+    showError('tasks-container', 'Не удалось загрузить задачи', err, loadTasks);
+    renderPagination('tasks', 0, false);
+  }
+}
+
+function renderTasks() {
+  const st = state.tasks;
+  if (!st.items.length) {
+    showContent('tasks-container', st.userId != null
+      ? emptyState('empty', 'У этого пользователя нет задач', 'Выберите другого пользователя или создайте новую задачу')
+      : emptyState('empty', 'Задач пока нет', 'Нажмите <b>Новая задача</b>, чтобы создать первую'));
+    return;
+  }
+  const box = showContent('tasks-container', `<div class="list">${st.items.map(taskHTML).join('')}</div>`);
+  if (st.highlight != null) {
+    const card = $(`.task[data-id="${st.highlight}"]`, box);
+    if (card) { card.classList.add('flash'); card.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+    st.highlight = null;
+  }
+}
+
+function taskHTML(t) {
+  const created = parseDate(t.created_at);
+  const completedAt = parseDate(t.completed_at);
+  const author = state.usersById.get(t.author_user_id);
+  const authorName = author ? author.full_name : `Пользователь #${t.author_user_id}`;
+
+  const status = t.completed
+    ? `<span class="chip chip-green" title="Выполнено${completedAt ? ' ' + fmtDateTime(completedAt) : ''}">${icon('circle_check', 14)}Выполнено${
+        created && completedAt ? ' · ' + fmtDuration(completedAt - created) : ''}</span>`
+    : `<span class="chip chip-amber" title="В работе${created ? ' с ' + fmtDateTime(created) : ''}">${icon('circle', 13)}В работе${
+        created ? ` · <span data-since="${created.getTime()}">${fmtDuration(Date.now() - created)}</span>` : ''}</span>`;
+
+  return `<article class="task ${t.completed ? 'done' : ''}" data-id="${t.id}">
+    <button type="button" class="task-check" data-action="toggle-task" data-id="${t.id}" aria-pressed="${!!t.completed}"
+      title="${t.completed ? 'Вернуть в работу' : 'Отметить выполненной'}">${icon('check', 14)}</button>
+    <div class="task-body">
+      <h3 class="task-title">${esc(t.title)}</h3>
+      ${t.description ? `<p class="task-desc">${esc(t.description)}</p>` : ''}
+      <div class="task-meta">
+        <span class="chip" title="Автор">${icon('user', 14)}<b>${esc(authorName)}</b><span class="dim">ID: ${esc(t.author_user_id)}</span></span>
+        <span class="chip" title="${created ? 'Создано ' + fmtDateTime(created) : ''}">${icon('calendar', 14)}${created ? fmtDateShort(created) : '—'}</span>
+        ${status}
+        <span class="chip chip-outline" title="Версия">v${esc(t.version)}</span>
+      </div>
+    </div>
+    <div class="task-actions">
+      <button type="button" class="icon-btn" data-action="edit-task" data-id="${t.id}" title="Редактировать" aria-label="Редактировать">${icon('edit', 18)}</button>
+      <button type="button" class="icon-btn danger" data-action="delete-task" data-id="${t.id}" title="Удалить" aria-label="Удалить">${icon('trash', 18)}</button>
+    </div>
+  </article>`;
+}
+
+// Подменяем одну карточку данными из ответа сервера (без перезагрузки списка).
+function replaceTask(updated) {
+  if (!updated || typeof updated !== 'object' || !updated.id) return false;
+  const i = state.tasks.items.findIndex((t) => t.id === updated.id);
+  const card = $(`#tasks-container .task[data-id="${updated.id}"]`);
+  if (i < 0 || !card) return false;
+  state.tasks.items[i] = updated;
+  card.outerHTML = taskHTML(updated);
+  return true;
+}
+
+async function toggleTask(id) {
+  const t = state.tasks.items.find((x) => x.id === id);
+  const card = $(`#tasks-container .task[data-id="${id}"]`);
+  if (!t || !card) return;
+  card.classList.add('busy');
+  try {
+    const updated = await api(`/tasks/${id}`, { method: 'PATCH', body: { completed: !t.completed } });
+    if (!replaceTask(updated)) await loadTasks();
+    toast('success', !t.completed ? 'Задача выполнена' : 'Задача снова в работе', `«${t.title}»`);
+  } catch (err) {
+    card.classList.remove('busy');
+    toastError('Не удалось изменить статус задачи', err);
+  }
+}
+
+function deleteTask(id) {
+  const t = state.tasks.items.find((x) => x.id === id);
+  if (!t) return;
+  askConfirm({
+    title: 'Удалить задачу?',
+    html: `Задача <b>«${esc(t.title)}»</b> будет удалена без возможности восстановления.`,
+    action: async () => {
+      await api(`/tasks/${id}`, { method: 'DELETE' });
+      toast('success', 'Задача удалена', `«${t.title}»`);
+      loadTasks();
+    },
+    errorTitle: 'Не удалось удалить задачу',
+  });
+}
+
+// ── модалка задачи ──
+let editingTask = null;
+
+function fillAuthorSelect() {
+  const sel = $('#task-author');
+  const keep = sel.value || (state.tasks.userId != null ? String(state.tasks.userId) : '');
+  sel.innerHTML = '<option value="">— выберите пользователя —</option>' +
+    state.users.map((u) => `<option value="${u.id}">${esc(u.full_name)} (ID: ${u.id})</option>`).join('');
+  if (keep && state.usersById.has(Number(keep))) sel.value = keep;
+  $('#task-author-hint').hidden = !state.usersLoaded || state.users.length > 0;
+}
+
+function openTaskModal(task = null) {
+  editingTask = task;
+  const form = $('#task-form');
+  form.reset();
+  clearErrors(form);
+  $('#task-modal-title').textContent = task ? 'Редактировать задачу' : 'Новая задача';
+  $('#task-submit').textContent = task ? 'Сохранить' : 'Создать задачу';
+  $('#task-title').value = task ? task.title : '';
+  $('#task-desc').value = task ? task.description ?? '' : '';
+  $('#task-desc').disabled = false;
+  $('#task-clear-row').hidden = !task;
+  $('#task-author-field').hidden = !!task;
+  if (!task) {
+    $('#task-author').value = '';
+    fillAuthorSelect();
+    if (!state.usersLoaded) ensureUsers().then(fillAuthorSelect).catch(() => {});
+  }
+  openModal('task-modal');
+}
+
+$('#task-clear-desc').addEventListener('change', (e) => {
+  $('#task-desc').disabled = e.target.checked;
+  clearFieldError($('#task-desc'));
+});
+
+$('#task-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.currentTarget;
+  const btn = $('#task-submit');
+  if (btn.disabled) return;
+  clearErrors(form);
+
+  const title = $('#task-title').value.trim();
+  const desc = $('#task-desc').value.trim();
+  const clearDesc = !!editingTask && $('#task-clear-desc').checked;
+  const authorId = Number($('#task-author').value) || null;
+
+  const errors = {};
+  if (!title) errors['task-title'] = 'Введите заголовок';
+  else if (strLen(title) > 100) errors['task-title'] = 'Не длиннее 100 символов';
+  if (!clearDesc && strLen(desc) > 1000) errors['task-desc'] = 'Не длиннее 1000 символов';
+  if (!editingTask && !authorId) errors['task-author'] = 'Выберите автора';
+  if (showErrors(form, errors)) return;
+
+  setBusy(btn, true);
+  try {
+    if (!editingTask) {
+      const body = { title, author_user_id: authorId };
+      if (desc) body.description = desc;
+      const created = await api('/tasks', { method: 'POST', body });
+      closeModal();
+      state.tasks.highlight = created && created.id;
+      await loadTasks();
+      const visible = state.tasks.items.some((t) => t.id === created?.id);
+      toast('success', 'Задача создана', visible ? `«${title}»` : `«${title}» — смотрите на следующих страницах`);
+    } else {
+      const t = editingTask;
+      const patch = {};
+      if (title !== t.title) patch.title = title;
+      if (clearDesc) { if (t.description != null) patch.description = null; }
+      else if (desc !== (t.description ?? '')) patch.description = desc || null;
+      if (!Object.keys(patch).length) { closeModal(); toast('info', 'Изменений нет'); return; }
+      const updated = await api(`/tasks/${t.id}`, { method: 'PATCH', body: patch });
+      closeModal();
+      if (!replaceTask(updated)) await loadTasks();
+      toast('success', 'Задача обновлена', `«${title}»`);
+    }
+  } catch (err) {
+    toastError(editingTask ? 'Не удалось сохранить задачу' : 'Не удалось создать задачу', err);
+  } finally {
+    setBusy(btn, false);
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// ПОЛЬЗОВАТЕЛИ
+// ─────────────────────────────────────────────────────────────
+async function loadUsers() {
+  const st = state.usersPage;
+  const req = ++st.req;
+  startLoading('users-container');
+  const params = new URLSearchParams({ limit: st.pageSize + 1, offset: st.page * st.pageSize });
+  try {
+    const items = expectArray(await api(`/users?${params}`));
+    if (req !== st.req) return;
+    if (!items.length && st.page > 0) { st.page -= 1; return loadUsers(); }
+    st.items = items.slice(0, st.pageSize);
+    renderUsers();
+    renderPagination('users', st.page, items.length > st.pageSize);
+  } catch (err) {
+    if (req !== st.req) return;
+    showError('users-container', 'Не удалось загрузить пользователей', err, loadUsers);
+    renderPagination('users', 0, false);
+  }
+}
+
+function renderUsers() {
+  const st = state.usersPage;
+  if (!st.items.length) {
+    showContent('users-container', emptyState('users', 'Пользователей пока нет', 'Нажмите <b>Новый пользователь</b>, чтобы добавить первого'));
+    return;
+  }
+  const box = showContent('users-container', `<div class="users-grid">${st.items.map(userCardHTML).join('')}</div>`);
+  if (st.highlight != null) {
+    const card = $(`.user-card[data-id="${st.highlight}"]`, box);
+    if (card) { card.classList.add('flash'); card.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+    st.highlight = null;
+  }
+}
+
+function userCardHTML(u) {
+  return `<article class="card user-card" data-id="${u.id}">
+    ${avatar(u)}
+    <h3 class="user-name">${esc(u.full_name)}</h3>
+    <div class="user-phone ${u.phone_number ? '' : 'empty'}">${icon('phone', 15)}<span>${u.phone_number ? esc(u.phone_number) : 'Нет телефона'}</span></div>
+    <div class="user-badges"><span class="chip">ID: ${esc(u.id)}</span><span class="chip chip-outline">v${esc(u.version)}</span></div>
+    <div class="user-divider"></div>
+    <div class="user-actions">
+      <button type="button" class="btn btn-outline btn-sm" data-action="edit-user" data-id="${u.id}">${icon('edit', 15)}Edit</button>
+      <button type="button" class="btn btn-danger-soft btn-sm" data-action="delete-user" data-id="${u.id}">${icon('trash', 15)}Delete</button>
+    </div>
+  </article>`;
+}
+
+function deleteUser(id) {
+  const u = state.usersPage.items.find((x) => x.id === id);
+  if (!u) return;
+  askConfirm({
+    title: 'Удалить пользователя?',
+    html: `Пользователь <b>«${esc(u.full_name)}»</b> будет удалён без возможности восстановления.`,
+    action: async () => {
+      await api(`/users/${id}`, { method: 'DELETE' });
+      toast('success', 'Пользователь удалён', `«${u.full_name}»`);
+      refreshUsers().catch(() => {});
+      loadUsers();
+    },
+    errorTitle: 'Не удалось удалить пользователя',
+  });
+}
+
+// ── модалка пользователя ──
+let editingUser = null;
+const normalizePhone = (s) => s.replace(/[\s()-]/g, '');
+
+function openUserModal(user = null) {
+  editingUser = user;
+  const form = $('#user-form');
+  form.reset();
+  clearErrors(form);
+  $('#user-modal-title').textContent = user ? 'Редактировать пользователя' : 'Новый пользователь';
+  $('#user-submit').textContent = user ? 'Сохранить' : 'Создать пользователя';
+  $('#user-name').value = user ? user.full_name : '';
+  $('#user-phone').value = user ? user.phone_number ?? '' : '';
+  $('#user-phone').disabled = false;
+  $('#user-clear-row').hidden = !user;
+  openModal('user-modal');
+}
+
+$('#user-clear-phone').addEventListener('change', (e) => {
+  $('#user-phone').disabled = e.target.checked;
+  clearFieldError($('#user-phone'));
+});
+
+$('#user-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.currentTarget;
+  const btn = $('#user-submit');
+  if (btn.disabled) return;
+  clearErrors(form);
+
+  const name = $('#user-name').value.trim();
+  const phone = normalizePhone($('#user-phone').value.trim());
+  const clearPhone = !!editingUser && $('#user-clear-phone').checked;
+
+  const errors = {};
+  if (strLen(name) < 3) errors['user-name'] = 'Минимум 3 символа';
+  else if (strLen(name) > 100) errors['user-name'] = 'Не длиннее 100 символов';
+  if (!clearPhone && phone && !/^\+\d{9,14}$/.test(phone)) errors['user-phone'] = 'Формат: «+» и от 9 до 14 цифр, например +79998887766';
+  if (showErrors(form, errors)) return;
+
+  setBusy(btn, true);
+  try {
+    if (!editingUser) {
+      const body = { full_name: name };
+      if (phone) body.phone_number = phone;
+      const created = await api('/users', { method: 'POST', body });
+      closeModal();
+      state.usersPage.highlight = created && created.id;
+      refreshUsers().catch(() => {});
+      await loadUsers();
+      const visible = state.usersPage.items.some((u) => u.id === created?.id);
+      toast('success', 'Пользователь создан', visible ? `«${name}»` : `«${name}» — смотрите на следующих страницах`);
+    } else {
+      const u = editingUser;
+      const patch = {};
+      if (name !== u.full_name) patch.full_name = name;
+      if (clearPhone) { if (u.phone_number != null) patch.phone_number = null; }
+      else if (phone !== (u.phone_number ?? '')) patch.phone_number = phone || null;
+      if (!Object.keys(patch).length) { closeModal(); toast('info', 'Изменений нет'); return; }
+      await api(`/users/${u.id}`, { method: 'PATCH', body: patch });
+      closeModal();
+      refreshUsers().catch(() => {});
+      await loadUsers();
+      toast('success', 'Пользователь обновлён', `«${name}»`);
+    }
+  } catch (err) {
+    toastError(editingUser ? 'Не удалось сохранить пользователя' : 'Не удалось создать пользователя', err);
+  } finally {
+    setBusy(btn, false);
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// СТАТИСТИКА
+// ─────────────────────────────────────────────────────────────
+async function loadStats() {
+  const from = $('#stats-from').value;
+  const to = $('#stats-to').value;
+  const userId = statsPicker.value;
+  $('#stats-from').classList.remove('invalid');
+  $('#stats-to').classList.remove('invalid');
+
+  if (from && to && to < from) {
+    $('#stats-to').classList.add('invalid');
+    toast('error', 'Неверный период', 'Дата «По» не может быть раньше даты «С».');
+    return;
+  }
+
+  const params = new URLSearchParams();
+  if (userId != null) params.set('user_id', userId);
+  if (from) params.set('from', from);
+  if (to) params.set('to', addDays(to, 1)); // «По» включительно, а сервер ждёт исключающую границу
+  const query = params.toString();
+
+  const req = ++state.statsReq;
+  const btn = $('#stats-refresh');
+  setBusy(btn, true);
+  startLoading('stats-container');
+  try {
+    const s = await api(`/statistics${query ? '?' + query : ''}`);
+    if (req !== state.statsReq) return;
+    renderStats(s || {}, !!query);
+  } catch (err) {
+    if (req !== state.statsReq) return;
+    showError('stats-container', 'Не удалось загрузить статистику', err, loadStats);
+  } finally {
+    if (req === state.statsReq) setBusy(btn, false);
+  }
+}
+
+function renderStats(s, filtered) {
+  const created = Number(s.tasks_created) || 0;
+  const done = Number(s.tasks_completed) || 0;
+  const inProgress = Math.max(0, created - done);
+  const rate = typeof s.tasks_completed_rate === 'number' ? s.tasks_completed_rate : null;
+  const avgMs = parseGoDuration(s.tasks_average_completion_time);
+  const pct = (n) => (created ? (n / created) * 100 : 0);
+
+  const card = (color, ico, label, value, sub) => `
+    <div class="card stat c-${color}">
+      <div class="stat-ico">${icon(ico, 20)}</div>
+      <div class="stat-label">${label}</div>
+      <div class="stat-value">${value}</div>
+      <div class="stat-sub">${sub}</div>
+    </div>`;
+  const row = (color, label, n) => `
+    <div class="prog-row c-${color}">
+      <div class="prog-head"><span>${label}</span><b>${n} / ${created}&nbsp;&nbsp;(${pct(n).toFixed(1)}%)</b></div>
+      <div class="bar"><span data-w="${pct(n)}"></span></div>
+    </div>`;
+
+  const box = showContent('stats-container', `
+    <div class="stats-grid">
+      ${card('blue', 'plus', 'Создано задач', created, filtered ? 'С учётом фильтров' : 'Всего в системе')}
+      ${card('green', 'check', 'Выполнено задач', done, 'Успешно завершены')}
+      ${card('amber', 'chart', 'Процент выполнения', rate == null ? '—' : `${rate.toFixed(1)}<small>%</small>`, 'От всех созданных задач')}
+      ${card('purple', 'clock', 'Среднее время выполнения', avgMs == null ? '—' : fmtAvgDuration(avgMs), 'От создания до готовности')}
+    </div>
+    <div class="card progress-card">
+      <h3>Обзор прогресса</h3>
+      ${row('green', 'Выполнено', done)}
+      ${row('amber', 'В работе', inProgress)}
+    </div>`);
+  void box.offsetWidth; // зафиксировать ширину 0, чтобы полосы плавно «выросли»
+  $$('.bar > span', box).forEach((b) => { b.style.width = `${b.dataset.w}%`; });
+}
+
+// ─────────────────────────────────────────────────────────────
+// МОДАЛКИ И ФОРМЫ
+// ─────────────────────────────────────────────────────────────
+let activeModal = null;
+let lastFocus = null;
+
+function openModal(id) {
+  const overlay = document.getElementById(id);
+  lastFocus = document.activeElement;
+  activeModal = overlay;
+  overlay.classList.add('open');
+  document.body.classList.add('modal-open');
+  const first = overlay.id === 'confirm-modal'
+    ? $('#confirm-cancel')
+    : $$('input:not([type=checkbox]), textarea, select', overlay).find((el) => !el.disabled && el.offsetParent !== null);
+  setTimeout(() => first?.focus(), 30);
+}
+function closeModal() {
+  if (!activeModal) return;
+  activeModal.classList.remove('open');
+  activeModal = null;
+  document.body.classList.remove('modal-open');
+  if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+}
+
+$$('.overlay').forEach((overlay) => {
+  let downOnOverlay = false; // закрываем по клику на фон, но не при выделении текста мышью
+  overlay.addEventListener('mousedown', (e) => { downOnOverlay = e.target === overlay; });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay && downOnOverlay) closeModal();
+    if (e.target.closest('[data-close]')) closeModal();
+  });
+});
+
+function clearFieldError(input) {
+  input.classList.remove('invalid');
+  const err = input.parentElement.querySelector('.f-error');
+  if (err) { err.hidden = true; err.textContent = ''; }
+}
+function clearErrors(form) { $$('.invalid', form).forEach(clearFieldError); }
+function showErrors(form, errors) {
+  const ids = Object.keys(errors);
+  ids.forEach((id) => {
+    const input = document.getElementById(id);
+    input.classList.add('invalid');
+    const err = input.parentElement.querySelector('.f-error');
+    if (err) { err.textContent = errors[id]; err.hidden = false; }
+  });
+  if (ids.length) document.getElementById(ids[0]).focus();
+  return ids.length > 0;
+}
+$$('.input, .textarea, .select').forEach((el) => {
+  el.addEventListener('input', () => clearFieldError(el));
+  el.addEventListener('change', () => clearFieldError(el));
+});
+
+// Подтверждение удаления
+let confirmAction = null;
+let confirmErrorTitle = '';
+function askConfirm({ title, html, okText = 'Удалить', action, errorTitle }) {
+  $('#confirm-title').textContent = title;
+  $('#confirm-text').innerHTML = html;
+  $('#confirm-ok').textContent = okText;
+  confirmAction = action;
+  confirmErrorTitle = errorTitle || 'Не удалось выполнить действие';
+  openModal('confirm-modal');
+}
+$('#confirm-ok').addEventListener('click', async () => {
+  const btn = $('#confirm-ok');
+  if (!confirmAction || btn.disabled) return;
+  setBusy(btn, true);
+  try {
+    await confirmAction();
+  } catch (err) {
+    toastError(confirmErrorTitle, err);
+  } finally {
+    confirmAction = null;
+    setBusy(btn, false);
+    closeModal();
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// ТЕМА
+// ─────────────────────────────────────────────────────────────
+function applyTheme(theme) {
+  const light = theme !== 'dark';
+  document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+  const btn = $('#theme-toggle');
+  btn.setAttribute('aria-checked', String(light));
+  $('.switch', btn).classList.toggle('on', light);
+  $('.theme-ico', btn).innerHTML = icon(light ? 'sun' : 'moon', 16);
+  $('.theme-text', btn).textContent = light ? 'Light mode' : 'Dark mode';
+}
+$('#theme-toggle').addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem(THEME_KEY, next); } catch (_) { /* приватный режим */ }
+  applyTheme(next);
+});
+
+// ─────────────────────────────────────────────────────────────
+// НАВИГАЦИЯ (#/tasks, #/users, #/stats)
+// ─────────────────────────────────────────────────────────────
+const ROUTES = ['tasks', 'users', 'stats'];
+const currentRoute = () => {
+  const r = location.hash.replace(/^#\/?/, '');
+  return ROUTES.includes(r) ? r : 'tasks';
+};
+function showRoute() {
+  const route = currentRoute();
+  closeModal();
+  pickers.forEach((p) => p.close());
+  ROUTES.forEach((r) => { document.getElementById(`page-${r}`).hidden = r !== route; });
+  $$('.nav a').forEach((a) => {
+    const active = a.dataset.route === route;
+    a.classList.toggle('active', active);
+    if (active) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+  });
+  if (route === 'tasks') loadTasks();
+  if (route === 'users') loadUsers();
+  if (route === 'stats') loadStats();
+}
+window.addEventListener('hashchange', showRoute);
+
+// ─────────────────────────────────────────────────────────────
+// ОБРАБОТЧИКИ
+// ─────────────────────────────────────────────────────────────
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const id = Number(el.dataset.id);
+  switch (el.dataset.action) {
+    case 'toggle-task': toggleTask(id); break;
+    case 'edit-task': { const t = state.tasks.items.find((x) => x.id === id); if (t) openTaskModal(t); break; }
+    case 'delete-task': deleteTask(id); break;
+    case 'edit-user': { const u = state.usersPage.items.find((x) => x.id === id); if (u) openUserModal(u); break; }
+    case 'delete-user': deleteUser(id); break;
+    case 'page': setPage(el.dataset.tab, Number(el.dataset.page)); break;
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && activeModal) { e.preventDefault(); closeModal(); return; }
+  if (e.key === 'Tab' && activeModal) { // держим фокус внутри модалки
+    const focusable = $$('button, input, textarea, select, a[href]', activeModal)
+      .filter((el) => !el.disabled && el.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+});
+
+$('#btn-new-task').addEventListener('click', () => openTaskModal());
+$('#btn-new-user').addEventListener('click', () => openUserModal());
+
+const tasksPicker = createUserPicker($('#tasks-user-picker'), {
+  onChange(id) {
+    state.tasks.userId = id;
+    state.tasks.page = 0;
+    if (currentRoute() === 'tasks') loadTasks();
+  },
+});
+const statsPicker = createUserPicker($('#stats-user-picker'));
+
+const tasksPageSize = createPageSize($('#tasks-page-size'), {
+  value: DEFAULT_PAGE_SIZE,
+  onChange(v) { state.tasks.pageSize = v; state.tasks.page = 0; loadTasks(); },
+});
+createPageSize($('#users-page-size'), {
+  value: DEFAULT_PAGE_SIZE,
+  onChange(v) { state.usersPage.pageSize = v; state.usersPage.page = 0; loadUsers(); },
+});
+
+$('#tasks-reset').addEventListener('click', () => {
+  tasksPicker.set(null);
+  tasksPageSize.set(DEFAULT_PAGE_SIZE);
+  Object.assign(state.tasks, { userId: null, page: 0, pageSize: DEFAULT_PAGE_SIZE });
+  loadTasks();
+});
+
+$('#stats-apply').addEventListener('click', loadStats);
+$('#stats-refresh').addEventListener('click', () => { refreshUsers().catch(() => {}); loadStats(); });
+$('#stats-reset').addEventListener('click', () => {
+  statsPicker.set(null);
+  $('#stats-from').value = '';
+  $('#stats-to').value = '';
+  loadStats();
+});
+['#stats-from', '#stats-to'].forEach((sel) => {
+  $(sel).addEventListener('keydown', (e) => { if (e.key === 'Enter') loadStats(); });
+  $(sel).addEventListener('input', () => $(sel).classList.remove('invalid'));
+});
+
+// «В работе · 57с» — обновляем раз в секунду
+setInterval(() => {
+  if (document.hidden) return;
+  $$('[data-since]').forEach((el) => { el.textContent = fmtDuration(Date.now() - Number(el.dataset.since)); });
+}, 1000);
+
+// ─────────────────────────────────────────────────────────────
+// СТАРТ
+// ─────────────────────────────────────────────────────────────
+$$('i[data-icon]').forEach((el) => { el.outerHTML = icon(el.dataset.icon, Number(el.dataset.size) || 18); });
+applyTheme(document.documentElement.getAttribute('data-theme'));
+refreshUsers().catch(() => {}); // ошибку покажет сам раздел при загрузке
+showRoute();
+})();
+</script>
 </body>
-
 </html>
