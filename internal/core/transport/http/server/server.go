@@ -113,18 +113,3 @@ func (s *HTTPServer) RegisterRoutes(routes ...Route) {
 		s.mux.Handle(pattern, route.WithMiddleware())
 	}
 }
-
-func (s *HTTPServer) RegisterSwagger() {
-	s.mux.Handle("/swagger/",
-		httpSwagger.Handler(httpSwagger.URL("/swagger/doc.json")))
-
-	s.mux.HandleFunc(
-		"/swagger/doc.json",
-		func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte(docs.SwaggerInfo.ReadDoc()))
-		},
-	)
-
-}
