@@ -256,6 +256,63 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "description": "Updates information about an already existing task in the system\n### Field update logic (Three-state logic):\n1. **Field not provided**: ` + "`" + `description` + "`" + ` is ignored, the value in the DB does not change\n2. **Value explicitly provided**: ` + "`" + `\"description\": \"Go for a walk with Bobik at 06:30 AM\"` + "`" + `\n3. **Explicitly passed null**: ` + "`" + `\"description\": null` + "`" + ` - clears the field in the DB (set to NULL)\nRestrictions: ` + "`" + `title` + "`" + ` and ` + "`" + `completed` + "`" + ` cannot be set to null",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Update a task",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the task to update",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "PatchTask request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_tasks_transport_http.PatchTaskRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully updated task",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_tasks_transport_http.PatchUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_krxzy37_todoapp-go_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Task not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_krxzy37_todoapp-go_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_krxzy37_todoapp-go_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/user/{id}": {
@@ -517,6 +574,28 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_krxzy37_todoapp-go_internal_core_transport_http_types.Nullable-bool": {
+            "type": "object",
+            "properties": {
+                "set": {
+                    "type": "boolean"
+                },
+                "value": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "github_com_krxzy37_todoapp-go_internal_core_transport_http_types.Nullable-string": {
+            "type": "object",
+            "properties": {
+                "set": {
+                    "type": "boolean"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
         "internal_features_statistics_transport_http.GetStatisticsResponse": {
             "type": "object",
             "properties": {
@@ -589,6 +668,49 @@ const docTemplate = `{
             }
         },
         "internal_features_tasks_transport_http.GetTaskResponse": {
+            "type": "object",
+            "properties": {
+                "author_user_id": {
+                    "type": "integer"
+                },
+                "completed": {
+                    "type": "boolean"
+                },
+                "completed_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_features_tasks_transport_http.PatchTaskRequest": {
+            "type": "object",
+            "properties": {
+                "completed": {
+                    "$ref": "#/definitions/github_com_krxzy37_todoapp-go_internal_core_transport_http_types.Nullable-bool"
+                },
+                "description": {
+                    "$ref": "#/definitions/github_com_krxzy37_todoapp-go_internal_core_transport_http_types.Nullable-string"
+                },
+                "title": {
+                    "$ref": "#/definitions/github_com_krxzy37_todoapp-go_internal_core_transport_http_types.Nullable-string"
+                }
+            }
+        },
+        "internal_features_tasks_transport_http.PatchUserResponse": {
             "type": "object",
             "properties": {
                 "author_user_id": {

@@ -26,7 +26,7 @@ func (h *WebHTTPHandler) Routes() []core_http_server.Route {
 	return []core_http_server.Route{
 		{
 			Method:  http.MethodGet,
-			Path:    "/",
+			Path:    "/{$}",
 			Handler: h.GetMainPage,
 		},
 	}
